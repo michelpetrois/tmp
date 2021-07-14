@@ -1,0 +1,10 @@
+---
+- name: libelle {{ variable }}
+  hosts: all
+  vars:
+          var1: "eee"
+          var2: "{{ variable }}"
+  tasks:
+          - name: task {{ var1 }} sur {{ var2 }} et {{ variable }}
+            ping :
+

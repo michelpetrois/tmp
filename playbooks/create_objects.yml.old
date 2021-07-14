@@ -1,0 +1,101 @@
+---
+- name: create tower objects for {{ dev_team }} on {{ organization }} with suffix {{ apcode }}
+  hosts: all
+  vars:
+          host: "http://localhost:80"
+          username: "admin"
+          password: "admin"
+  tasks:
+          - name: create inventory i-{{ apcode }}
+            awx.awx.inventory:
+                    controller_host: "{{ host }}"
+                    controller_username: "{{ username }}"
+                    controller_password: "{{ password }}"
+                    name: "i-{{ apcode }}"
+                    organization: "{{ organization }}"
+                    validate_certs: "no"
+          - name: create git credential cg-{{ apcode }}
+            awx.awx.credential:
+                    controller_host: "{{ host }}"
+                    controller_username: "{{ username }}"
+                    controller_password: "{{ password }}"
+                    name: "cg-{{ apcode }}"
+                    organization: "{{ organization }}"
+                    team: "{{ dev_team }}"
+                    credential_type: "Source Control"
+                    inputs:
+                            username: "michel.petrois@laposte.net"
+                            password: "!!MMllkk12"
+          - name: create artifactory credential ca-{{ apcode }}
+            awx.awx.credential:
+                    controller_host: "{{ host }}"
+                    controller_username: "{{ username }}"
+                    controller_password: "{{ password }}"
+                    name: "ca-{{ apcode }}"
+                    organization: "{{ organization }}"
+                    credential_type: "Artifactory"
+                    inputs:
+                            username: "LOGIN_ARTIFACTORY"
+                            password: "PASSWORD"
+          - name: create project p-{{ apcode }}
+            awx.awx.project:
+                    controller_host: "{{ host }}"
+                    controller_username: "{{ username }}"
+                    controller_password: "{{ password }}"
+                    name: "p-{{ apcode }}"
+                    organization: "{{ organization }}"
+                    scm_type: "git"
+                    scm_url: "https://github.com/michelpetrois/tmp.git"
+                    credential: "cg-{{ apcode }}"
+          - name: create job-template j-{{ apcode }}
+            awx.awx.job_template:
+                    controller_host: "{{ host }}"
+                    controller_username: "{{ username }}"
+                    controller_password: "{{ password }}"
+                    name: "j-{{ apcode }}"
+                    organization: "{{ organization }}"
+                    extra_vars:
+                            ap_code: "{{ apcode }}"
+                            env: "HORSPROD"
+                    inventory: "i-{{ apcode }}"
+                    playbook: "exemple.yml"
+                    project: "p-{{ apcode }}"
+                    job_type: "run"
+          - name: set admin role for credentials to {{ dev_team }} team
+            awx.awx.role:
+                    controller_host: "{{ host }}"
+                    controller_username: "{{ username }}"
+                    controller_password: "{{ password }}"
+                    credentials: 
+                      - "cg-{{ apcode }}"
+                      - "ca-{{ apcode }}"
+                    role: "admin"
+                    team: "{{ dev_team }}"
+           - name: set admin role for inventory to {{ dev_team }} team
+             awx.awx.role:
+                    controller_host: "{{ host }}"
+                    controller_username: "{{ username }}"
+                    controller_password: "{{ password }}"             
+                    inventories: 
+                      - "i-{{ apcode }}"
+                    role: "admin"
+                    team: "{{ dev_team }}"
+           - name: set admin role for job_template to {{ dev_team }} team
+             awx.awx.role:
+                    controller_host: "{{ host }}"
+                    controller_username: "{{ username }}"
+                    controller_password: "{{ password }}"
+                    job_templates: 
+                      - "j-{{ apcode }}"
+                    role: "admin"
+                    team: "{{ dev_team }}"
+           - name: set admin role for project to {{ dev_team }} team
+             awx.awx.role:
+                    controller_host: "{{ host }}"
+                    controller_username: "{{ username }}"
+                    controller_password: "{{ password }}"
+                    projects: 
+                      - "p-{{ apcode }}"
+                    role: "admin"
+                    team: "{{ dev_team }}"
+
