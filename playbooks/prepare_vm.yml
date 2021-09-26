@@ -1,0 +1,21 @@
+- name: preparation de la VM
+  hosts: localhost
+  tasks:
+    - name: DL docker
+      yum:
+        name: docker
+        state: present
+    - name: install dependencies
+      yum:
+        name: 
+          - epel-release 
+          - git
+          - gcc
+          - gcc-c++
+          - nodejs
+          - gettext
+          - device-mapper-persistent-data
+          - lvm2
+          - bzip2
+          - python3-pip
+        state: present
